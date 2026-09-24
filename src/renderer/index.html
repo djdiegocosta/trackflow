@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <!-- CSP restritiva: nada de rede, nada de scripts externos. App 100% local. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';" />
+  <title>TrackFlow Renamer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">TF</span>
+        <div>
+          <h1>TrackFlow Renamer</h1>
+          <p class="subtitle">Renomeador inteligente de MP3 — 100% local e offline</p>
+        </div>
+      </div>
+      <div class="folder-controls">
+        <button id="btnSelectFolder" class="btn btn-primary">Selecionar pasta…</button>
+        <span id="currentFolder" class="folder-path">Nenhuma pasta selecionada</span>
+      </div>
+    </header>
+
+    <main class="layout">
+
+      <aside class="sidebar">
+        <section class="panel">
+          <h2>Modelo de nome</h2>
+          <label class="field">
+            <span>Padrão</span>
+            <select id="templateSelect">
+              <option value="artist-title">Artista - Música</option>
+              <option value="title-artist">Música - Artista</option>
+              <option value="title-only">Música</option>
+              <option value="artist-only">Artista</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </label>
+          <label class="field" id="customTemplateField" style="display:none;">
+            <span>Modelo personalizado</span>
+            <input id="customTemplateInput" type="text" placeholder="{artist} - {title} ({year})" />
+            <small>Use: {artist} {title} {album} {year} {track}</small>
+          </label>
+        </section>
+
+        <section class="panel">
+          <h2>Regras de limpeza</h2>
+          <label class="checkbox"><input type="checkbox" id="ruleLeadingNumbering" checked /> Remover numeração inicial (ex: "01 - ")</label>
+          <label class="checkbox"><input type="checkbox" id="ruleUnderscores" checked /> Remover underscores ( _ → espaço )</label>
+          <label class="checkbox"><input type="checkbox" id="ruleCollapseDuplicates" checked /> Colapsar espaços/hífens duplicados</label>
+          <label class="checkbox"><input type="checkbox" id="ruleInvalidChars" checked /> Remover caracteres inválidos/invisíveis</label>
+          <label class="checkbox"><input type="checkbox" id="ruleBracketed" /> Remover texto entre [colchetes] e (parênteses)</label>
+          <label class="checkbox"><input type="checkbox" id="ruleSeparators" checked /> Padronizar separador " - "</label>
+          <label class="checkbox"><input type="checkbox" id="ruleCapitalization" checked /> Padronizar capitalização (Title Case)</label>
+        </section>
+
+        <section class="panel">
+          <h2>Termos preservados</h2>
+          <p class="hint">Mantidos com a grafia original mesmo com as regras acima (ex: em colchetes ou na capitalização).</p>
+          <textarea id="preserveTerms" rows="4"></textarea>
+        </section>
+
+        <section class="panel">
+          <h2>Opções avançadas</h2>
+          <label class="checkbox"><input type="checkbox" id="includeMissing" /> Incluir arquivos sem Artista/Título nos metadados</label>
+          <label class="checkbox"><input type="checkbox" id="copyBackup" checked /> Copiar arquivos originais para pasta de backup antes de renomear</label>
+        </section>
+
+        <button id="btnGeneratePreview" class="btn btn-secondary btn-block" disabled>Gerar prévia</button>
+      </aside>
+
+      <section class="content">
+        <div class="toolbar">
+          <div class="toolbar-stats">
+            <span id="statTotal">0 arquivos</span>
+            <span id="statReady" class="stat stat-ready">0 prontos</span>
+            <span id="statConflict" class="stat stat-conflict">0 conflitos</span>
+            <span id="statMissing" class="stat stat-missing">0 sem metadados</span>
+          </div>
+          <div class="toolbar-actions">
+            <button id="btnToggleAll" class="btn btn-ghost" disabled>Marcar/Desmarcar todos</button>
+            <button id="btnExecute" class="btn btn-danger" disabled>Executar renomeação</button>
+            <button id="btnUndo" class="btn btn-ghost">Desfazer última alteração</button>
+          </div>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+          <p>Selecione uma pasta com arquivos MP3 para começar.</p>
+        </div>
+
+        <div id="progressState" class="empty-state" style="display:none;">
+          <p id="progressText">Analisando arquivos…</p>
+        </div>
+
+        <div class="table-wrapper" id="tableWrapper" style="display:none;">
+          <table id="previewTable">
+            <thead>
+              <tr>
+                <th class="col-check"><input type="checkbox" id="checkAllHeader" /></th>
+                <th>Status</th>
+                <th>Nome atual</th>
+                <th>Novo nome</th>
+                <th>Pasta</th>
+              </tr>
+            </thead>
+            <tbody id="previewTbody"></tbody>
+          </table>
+        </div>
+
+        <div id="reportPanel" class="report-panel" style="display:none;">
+          <h3>Relatório da operação</h3>
+          <div id="reportContent"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="statusbar">
+      <span id="statusMessage">Pronto.</span>
+    </footer>
+
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
